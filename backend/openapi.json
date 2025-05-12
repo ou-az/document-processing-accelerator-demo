@@ -1,0 +1,85 @@
+{
+  "components": {
+    "securitySchemes": {
+      "cognitoAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "AWS Cognito JWT token. Format: Bearer [token]"
+      }
+    }
+  },
+  "security": [
+    {
+      "cognitoAuth": []
+    }
+  ],
+  "definitions": {
+    "AuthenticationError": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Unauthorized"
+        },
+        "error": {
+          "type": "string",
+          "example": "Invalid token"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/documents": {
+      "get": {
+        "security": [
+          {
+            "cognitoAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of documents to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by document status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "ERROR"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/AuthenticationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

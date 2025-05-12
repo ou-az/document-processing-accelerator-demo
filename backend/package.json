@@ -1,0 +1,34 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "serverless offline start",
+    "deploy": "serverless deploy",
+    "generate-docs": "serverless openapi generate && (if not exist .serverless mkdir .serverless) && copy swagger.json .serverless\\"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.806.0",
+    "@aws-sdk/s3-request-presigner": "^3.806.0",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.9.0",
+    "openai": "^4.98.0",
+    "typescript": "^5.8.3",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.149",
+    "@types/node": "^22.15.17",
+    "@types/uuid": "^10.0.0",
+    "serverless": "^4.14.3",
+    "serverless-offline": "^14.4.0",
+    "serverless-openapi-documentation": "^0.4.0",
+    "serverless-typescript": "^0.0.5"
+  }
+}

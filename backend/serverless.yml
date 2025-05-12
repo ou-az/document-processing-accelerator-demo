@@ -1,0 +1,322 @@
+service: document-processing-api
+
+frameworkVersion: '4.x'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  # API Gateway configuration
+  apiGateway:
+    shouldStartNameWithService: true
+  environment:
+    # These environment variables should match your Terraform output values
+    DOCUMENTS_TABLE: doc-processor-${self:provider.stage}-documents
+    DOCUMENTS_BUCKET: doc-processor-${self:provider.stage}-documents-${env:BUCKET_SUFFIX, 'YOUR_BUCKET_SUFFIX_HERE'}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY, ''}
+  # Use the IAM role created by Terraform
+  iam:
+    role: ${env:LAMBDA_ROLE_ARN, ''}  # Set this environment variable with your IAM role ARN
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+plugins:
+  - serverless-typescript
+  - serverless-offline
+  - serverless-openapi-documentation
+
+custom:
+  serverlessOffline:
+    httpPort: 4000
+  # CORS configuration for API Gateway
+  cors:
+    origin: '${env:FRONTEND_URL, '*'}'  # Set to your frontend URL or '*' for development
+    headers:
+      - Content-Type
+      - X-Amz-Date
+      - Authorization
+      - X-Api-Key
+      - X-Amz-Security-Token
+      - X-User-Id
+    allowCredentials: true
+  
+  # OpenAPI Documentation Configuration
+  documentation: 
+    version: '1'
+    title: 'Document Processing Accelerator API'
+    description: 'API for managing and processing documents'
+    termsOfService: 'https://example.com/terms'
+    contact:
+      name: 'API Support'
+      url: 'https://example.com/support'
+      email: 'support@example.com'
+    models:
+      - name: Document
+        description: 'A document object'
+        contentType: application/json
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 'Unique identifier for the document'
+            userId:
+              type: string
+              description: 'ID of the user who owns the document'
+            title:
+              type: string
+              description: 'Title of the document'
+            documentType:
+              type: string
+              description: 'Type of document (INVOICE, RECEIPT, etc.)'
+            status:
+              type: string
+              description: 'Processing status of the document'
+              enum: [PENDING, PROCESSING, COMPLETED, ERROR]
+            metadata:
+              type: object
+              description: 'Additional metadata about the document'
+            s3Key:
+              type: string
+              description: 'S3 key where the document file is stored'
+            createdAt:
+              type: string
+              format: date-time
+              description: 'Timestamp when the document was created'
+            updatedAt:
+              type: string
+              format: date-time
+              description: 'Timestamp when the document was last updated'
+      
+      - name: DocumentList
+        description: 'A list of documents'
+        contentType: application/json
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Document'
+      
+      - name: DocumentInput
+        description: 'Input for creating a new document'
+        contentType: application/json
+        schema:
+          type: object
+          required:
+            - title
+            - documentType
+          properties:
+            title:
+              type: string
+              description: 'Title of the document'
+            documentType:
+              type: string
+              description: 'Type of document (INVOICE, RECEIPT, etc.)'
+            description:
+              type: string
+              description: 'Optional description of the document'
+      
+      - name: UploadUrlRequest
+        description: 'Request for generating a pre-signed upload URL'
+        contentType: application/json
+        schema:
+          type: object
+          required:
+            - documentId
+            - fileName
+            - fileType
+          properties:
+            documentId:
+              type: string
+              description: 'ID of the document to upload'
+            fileName:
+              type: string
+              description: 'Name of the file being uploaded'
+            fileType:
+              type: string
+              description: 'MIME type of the file'
+      
+      - name: UploadUrlResponse
+        description: 'Response containing a pre-signed upload URL'
+        contentType: application/json
+        schema:
+          type: object
+          properties:
+            uploadUrl:
+              type: string
+              description: 'Pre-signed URL for uploading to S3'
+            documentId:
+              type: string
+              description: 'ID of the document'
+      
+      - name: Error
+        description: 'Error response'
+        contentType: application/json
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: 'Error message'
+            error:
+              type: string
+              description: 'Error details'
+      
+      - name: SuccessResponse
+        description: 'Success response'
+        contentType: application/json
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: 'Success message'
+            id:
+              type: string
+              description: 'ID of the affected resource'
+
+functions:
+  # Swagger documentation
+  serveSwaggerJson:
+    handler: src/functions/swagger/serveSwaggerJson.handler
+    events:
+      - http:
+          path: /swagger
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  serveSwaggerUI:
+    handler: src/functions/swagger/serveSwaggerUI.handler
+    events:
+      - http:
+          path: /swagger/ui
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  getDocuments:
+    handler: src/functions/documents/get.handler
+    events:
+      - http:
+          path: /documents
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  getDocumentById:
+    handler: src/functions/documents/getById.handler
+    events:
+      - http:
+          path: /documents/{id}
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  createDocument:
+    handler: src/functions/documents/create.handler
+    events:
+      - http:
+          path: /documents
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  generateUploadUrl:
+    handler: src/functions/documents/generateUploadUrl.handler
+    events:
+      - http:
+          path: /documents/upload-url
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+  
+  processDocument:
+    handler: src/functions/documents/process.handler
+    events:
+      - http:
+          path: /documents/{id}/process
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+      - s3:
+          bucket: ${self:provider.environment.DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          existing: true
+  
+  deleteDocument:
+    handler: src/functions/documents/delete.handler
+    events:
+      - http:
+          path: /documents/{id}
+          method: delete
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-User-Id
+            allowCredentials: true
+
+# Resources are managed by Terraform
