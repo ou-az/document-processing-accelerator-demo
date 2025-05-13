@@ -1,0 +1,134 @@
+.document-list-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.document-list-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+}
+
+.document-table-container {
+  overflow-x: auto;
+}
+
+.document-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.document-table th,
+.document-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.document-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.document-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.document-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background-color: #fff8e1;
+  color: #ffa000;
+}
+
+.status-badge.processing {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.completed {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-badge.failed {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.document-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.view-button,
+.delete-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.view-button {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.view-button:hover:not(:disabled) {
+  background-color: #3272bf;
+}
+
+.view-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+.error-container {
+  color: #d32f2f;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+  background-color: #ffebee;
+  margin: 20px 0;
+}
+
+.empty-container {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  font-style: italic;
+}
